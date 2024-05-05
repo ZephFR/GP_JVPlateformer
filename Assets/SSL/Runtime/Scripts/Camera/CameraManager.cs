@@ -1,5 +1,5 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
+using static CameraProfile;
 
 public class CameraManager : MonoBehaviour
 {
@@ -7,6 +7,10 @@ public class CameraManager : MonoBehaviour
 
     [Header("Camera")]
     [SerializeField] private Camera _camera;
+
+    [Header("Type")]
+    [SerializeField]
+    private CameraProfileType _profileType;
 
     [Header("Profile System")]
     [SerializeField] private CameraProfile _defaultCameraProfile;
@@ -48,17 +52,19 @@ public class CameraManager : MonoBehaviour
 
     private void Update()
     {
+        Vector3 nextPosition = _FindCameraNextPosition();
+
         if (_IsPlayingProfileTransition()) 
         {
             _profileTransitionTimer += Time.deltaTime;
-            Vector3 transitionPosition = _CalculateProfileTransitionPosition(_currentCameraProfile.Position);
+            Vector3 transitionPosition = _CalculateProfileTransitionPosition(nextPosition);
             _SetCameraPosition(transitionPosition);
             float transitionSize = _CalculateProfileTransitionCameraSize(_currentCameraProfile.CameraSize);
             _SetCameraSize(transitionSize);
         }
         else
         {
-            _SetCameraPosition(_currentCameraProfile.Position);
+            _SetCameraPosition(nextPosition);
             _SetCameraSize(_currentCameraProfile.CameraSize);
         }
     }
@@ -109,5 +115,20 @@ public class CameraManager : MonoBehaviour
         float percent = _profileTransitionTimer / _profileTransitionDuration;
         Vector3 origin = _profileTransitionStartPosition;
         return Vector3.Lerp(origin, destination, percent);
+    }
+
+    private Vector3 _FindCameraNextPosition()
+    {
+        if (_currentCameraProfile.ProfileType == CameraProfileType.FollowTarget)
+        {
+            if (_currentCameraProfile.TargetToFollow != null)
+            {
+                Vector3 destination = _currentCameraProfile.TargetToFollow.position;
+                return destination;
+            }
+        }
+
+
+        return _currentCameraProfile.Position;
     }
 }
