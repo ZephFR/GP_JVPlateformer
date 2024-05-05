@@ -28,6 +28,7 @@ public class HeroEntity : MonoBehaviour
     [SerializeField] private HeroJumpSettings _jumpSettings;
     [SerializeField] private HeroFallSettings _jumpFallSettings;
 
+    
     enum JumpState
     {
         NotJumping,
@@ -42,7 +43,15 @@ public class HeroEntity : MonoBehaviour
     [SerializeField] private GroundDetector _groundDetector;
     public bool IsTouchingGround { get; private set; } = false;
 
+    //Camera Follow
+    private CameraFollowable _cameraFollowable;
 
+    private void Awake()
+    {
+        _cameraFollowable = GetComponent<CameraFollowable>();
+        _cameraFollowable.FollowPositionX = _rigidbody.position.x;
+        _cameraFollowable.FollowPositionY = _rigidbody.position.y;
+    }
 
     #region Functions Move Dir
     public float GetMoveDirX()
@@ -59,7 +68,7 @@ public class HeroEntity : MonoBehaviour
     private void FixedUpdate()
     {
         _ApplyGroundDetection();
-
+        _UpdateCameraFollowPosition();
 
         HeroHorizontalMovementsSettings horizontalMovementsSettings = _GetCurrentHorizontalMovementSettings();
         if (_AreOrientAndMovementOpposite())
@@ -252,6 +261,15 @@ public class HeroEntity : MonoBehaviour
         else
         {
             return _airHorizontalMovementSettings;
+        }
+    }
+
+    private void _UpdateCameraFollowPosition()
+    {
+        _cameraFollowable.FollowPositionX = _rigidbody.position.x;
+        if (IsTouchingGround && !IsJumping) 
+        {
+            _cameraFollowable.FollowPositionY = _rigidbody.position.y;
         }
     }
 
